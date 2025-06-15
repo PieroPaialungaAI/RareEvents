@@ -18,3 +18,13 @@ class Data:
         self.processed_data = self.raw_data[[city, 'datetime']]
         return self.processed_data
     
+
+    def clean_and_preprocess(self):
+        self.processed_data = self.processed_data.dropna()
+        self.processed_data['datetime'] = pd.to_datetime(self.processed_data['datetime'])
+        datetime = self.processed_data['datetime']
+        self.unique_days = set(datetime.dt.date)
+        self.unique_months = set(zip(datetime.dt.year, datetime.dt.month))
+        self.unique_years = set(datetime.dt.year)
+        return self.processed_data
+    
