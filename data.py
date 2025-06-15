@@ -12,3 +12,9 @@ class Data:
     
     def load_data_path(self):
         return pd.read_csv(self.data_path+self.data_file)
+    
+
+    def isolate_city(self, city):
+        self.processed_data = self.raw_data[[city, 'datetime']]
+        return self.processed_data
+    
