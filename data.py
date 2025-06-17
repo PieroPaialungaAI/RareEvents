@@ -16,15 +16,18 @@ class Data:
 
     def isolate_city(self, city):
         self.processed_data = self.raw_data[[city, 'datetime']]
+        self.city = city
         return self.processed_data
     
 
     def clean_and_preprocess(self):
         self.processed_data = self.processed_data.dropna()
         self.processed_data['datetime'] = pd.to_datetime(self.processed_data['datetime'])
-        datetime = self.processed_data['datetime']
-        self.unique_days = set(datetime.dt.date)
-        self.unique_months = set(zip(datetime.dt.year, datetime.dt.month))
-        self.unique_years = set(datetime.dt.year)
+        self.processed_data = self.processed_data.rename(columns = {self.city: 'y'})
+        self.processed_data['date'] = self.processed_data['datetime'].dt.date
+        self.processed_data['month'] = self.processed_data['datetime'].dt.month
+        self.processed_data['year'] = self.processed_data['datetime'].dt.year
         return self.processed_data
     
+
+
