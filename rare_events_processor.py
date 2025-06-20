@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from constants import * 
 from plotter import * 
+from scipy.stats import genextreme
 
 class RareEventsToolbox():
     def __init__(self, data):
@@ -38,13 +39,29 @@ class RareEventsToolbox():
         return max_value
     
 
-    def extract_max_values(self):
-        keys = ['day','month','year']
+    def extract_max_values(self, keys = KEYS):
         self.max_values_dict = {k : [] for k in keys}
         for k in keys:
             self.max_values_dict[k] = self.extract_block_max(key = k)
         return self.max_values_dict
     
 
+    def fit_max_distributions(self, keys = KEYS):
+        self.max_values_fit = {k: {} for k in keys}
+        for k in keys:
+            c, loc, scale = genextreme.fit(-self.max_values_dict[k])
+            self.max_values_fit[k] = {'c':c, 'loc': loc, 'scale':scale}
+        return self.max_values_fit
+
+    
+    def plot_fitted_distributions(self, key = 'day'):
+        gev_plotter(self.max_values_dict[key], self.max_values_fit[key]['c'], self.max_values_fit[key]['loc'],
+                    self.max_values_fit[key]['scale'])
+        
+
+
     def plot_distributions(self):
         distribution_plotter(self.max_values_dict)
+
+
+    
