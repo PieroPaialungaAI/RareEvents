@@ -9,7 +9,8 @@ class Distribution():
 
     def distribution_builder(self):
         if self.dist_type == 'gev':
-            params = genextreme.fit(self.data)
+            dist = genextreme
+            params = dist.fit(self.data)
             dist_name = self.dist_type
         elif self.dist_type == 'weibull':
             min_or_max = self.choose_tail()
@@ -27,9 +28,30 @@ class Distribution():
             else:
                 dist = gumbel_l
             params = dist.fit(self.data)
-        res = {'dist_type':dist_name, 'param':params}
+        self.dist = dist
+        self.params = params
+        res = {'dist_type':dist_name, 'param':params, 'dist':dist}
         self.distribution = res
         return res
+
+
+    def score_distribution(self):
+        data = np.asarray(self.data)
+        data = data[~np.isnan(data)]
+        data = data[np.isfinite(data)]
+
+        n = len(data)
+        k = len(self.params)
+
+        log_likelihood = np.sum(self.dist.logpdf(data, *self.params))
+        aic = 2 * k - 2 * log_likelihood
+        bic = k * np.log(n) - 2 * log_likelihood
+
+        return {
+            'log_likelihood': log_likelihood,
+            'aic': aic,
+            'bic': bic
+        }
 
 
 

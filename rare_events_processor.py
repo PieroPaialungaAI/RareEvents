@@ -46,23 +46,45 @@ class RareEventsToolbox():
             self.max_values_dict[k] = self.extract_block_max(key = k)
         return self.max_values_dict
     
+    def plot_distributions(self):
+        distribution_plotter(self.max_values_dict)
+
 
     def fit_max_distribution(self, dist_type, keys = KEYS):
         for k in keys:
             dist = Distribution(dist_type = dist_type, data = self.max_values_dict[k])
             distribution_fit = dist.distribution_builder()
-            self.distribution_fit[dist_type] = distribution_fit
+            if dist_type not in self.distribution_fit:
+                self.distribution_fit[dist_type] = {}
+            self.distribution_fit[dist_type][k] = distribution_fit
+            self.distribution_fit[dist_type][k]['metrics'] = dist.score_distribution()
         return self.distribution_fit
 
-    
-    def plot_fitted_distributions(self, key = 'day'):
-        gev_plotter(self.max_values_dict[key], self.max_values_fit[key]['c'], self.max_values_fit[key]['loc'],
-                    self.max_values_fit[key]['scale'])
-        
 
+    def plot_fitted_distribution(self, key, dist_type):
+        if dist_type not in self.distribution_fit or key not in self.distribution_fit[dist_type]:
+            raise ValueError(f"No fitted distribution found for {dist_type} with key {key}.")
 
-    def plot_distributions(self):
-        distribution_plotter(self.max_values_dict)
+        fit_info = self.distribution_fit[dist_type][key]
+        data = self.max_values_dict[key]
+        dist_name = fit_info['dist_type']
+        params = fit_info['param']
+        dist = fit_info['dist']
+
+        # Create x-values for PDF
+        x = np.linspace(min(data), max(data), 1000)
+        pdf = dist.pdf(x, *params)
+
+        # Plot
+        plt.figure(figsize=(8, 5))
+        plt.hist(data, bins=30, density=True, alpha=0.6, label='Empirical Data')
+        plt.plot(x, pdf, 'r-', label=f'Fitted {dist_name.upper()}')
+        plt.title(f'{dist_name.upper()} Fit for {key.capitalize()} Maxima')
+        plt.xlabel('Value')
+        plt.ylabel('Density')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 
     
