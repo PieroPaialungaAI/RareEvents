@@ -13,6 +13,7 @@ class RareEventsToolbox():
         self.unique_months = set(zip(datetime.dt.year, datetime.dt.month))
         self.unique_years = set(datetime.dt.year)
         self.distribution_fit = {}
+        self.distribution_scores = {}
 
     def extract_block_max(self, key = 'day'):
         if key == 'day':
@@ -50,7 +51,7 @@ class RareEventsToolbox():
         distribution_plotter(self.max_values_dict)
 
 
-    def fit_max_distribution(self, dist_type, keys = KEYS):
+    def fit_distribution(self, dist_type, keys = KEYS):
         for k in keys:
             dist = Distribution(dist_type = dist_type, data = self.max_values_dict[k])
             distribution_fit = dist.distribution_builder()
@@ -59,6 +60,32 @@ class RareEventsToolbox():
             self.distribution_fit[dist_type][k] = distribution_fit
             self.distribution_fit[dist_type][k]['metrics'] = dist.score_distribution()
         return self.distribution_fit
+    
+
+    def fit_all_distributions(self, keys = KEYS):
+        distributions = ['weibull','gumbel','gev']
+        self.distribution_scores = {k: {} for k in keys} 
+        for distribution in distributions:
+            self.fit_distribution(dist_type = distribution)
+            for k in keys:
+                self.distribution_scores[k][distribution] = {}
+                self.distribution_scores[k][distribution] = self.distribution_fit[distribution][k]
+        
+    def rank_distributions(self, key, rank_based_on = 'aic'):
+        distribution_scores_for_key = self.distribution_scores[key]
+        distributions = ['weibull','gumbel','gev']
+        self.df_scores = np.zeros((3,3))
+        for count, distribution in enumerate(distributions):
+            self.df_scores[count] = list(distribution_scores_for_key[distribution]['metrics'].values())
+        self.df_scores = pd.DataFrame(self.df_scores)
+        self.df_scores.index = distributions
+        self.df_scores.columns = list(distribution_scores_for_key[distribution]['metrics'].keys())
+        if rank_based_on == 'log_likelihood':
+            self.df_scores = self.df_scores.sort_values(by = rank_based_on, ascending = False)
+        else:
+            self.df_scores = self.df_scores.sort_values(by = rank_based_on)
+        return self.df_scores.index[0],self.df_scores
+
 
 
     def plot_fitted_distribution(self, key, dist_type):
@@ -86,5 +113,18 @@ class RareEventsToolbox():
         plt.grid(True)
         plt.show()
 
+
+    def plot_qq(self, key, dist_type):
+        if dist_type not in self.distribution_fit or key not in self.distribution_fit[dist_type]:
+            raise ValueError(f"No fitted distribution found for {dist_type} with key {key}.")
+
+        fit_info = self.distribution_fit[dist_type][key]
+        data = self.max_values_dict[key]
+        dist_name = fit_info['dist_type']
+        params = fit_info['param']
+        dist = fit_info['dist']
+        # Generate theoretical and empirical quantiles
+        osm, osr = np.sort(data), dist.ppf(np.linspace(0.01, 0.99, len(data)), *params)
+        qq_plotter(osm, osr, dist_name, key)
 
     

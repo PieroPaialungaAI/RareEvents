@@ -41,3 +41,16 @@ def gev_plotter(data, c, loc, scale, bins=BIN_NUMBER):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+
+def qq_plotter(osm, osr, dist_name, key):
+    plt.figure(figsize=(6, 6))
+    plt.scatter(osr, osm, label='Empirical vs. Theoretical Quantiles', alpha=0.7)
+    min_val, max_val = min(osr.min(), osm.min()), max(osr.max(), osm.max())
+    plt.plot([min_val, max_val], [min_val, max_val], 'r--', label='Ideal Fit Line')
+    plt.xlabel('Theoretical Quantiles')
+    plt.ylabel('Empirical Quantiles')
+    plt.title(f'Q–Q Plot: {dist_name.upper()} Fit for {key.capitalize()} Maxima')
+    plt.legend()
+    plt.grid(True)
+    plt.show()

@@ -22,11 +22,13 @@ class Distribution():
             params = dist.fit(self.data)
         elif self.dist_type == 'gumbel':
             min_or_max = self.choose_tail()
-            dist_name = 'gumbel_' + min_or_max
-            if min_or_max == 'max':
-                dist = gumbel_r
-            else:
+            if min_or_max == 'min':
                 dist = gumbel_l
+                dist_name = 'gumbel_max'
+            else:
+                dist_name = 'gumbel_min'
+                dist = gumbel_r
+
             params = dist.fit(self.data)
         self.dist = dist
         self.params = params
@@ -66,8 +68,8 @@ class Distribution():
         data_skew = skew(data)
 
         if data_skew >= 0:
-            return "min"
-        elif data_skew < 0:
             return "max"
+        elif data_skew < 0:
+            return "min"
 
 
