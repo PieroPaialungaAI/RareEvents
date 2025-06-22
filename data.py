@@ -9,6 +9,13 @@ class Data:
         self.data_file = data_file
         self.raw_data = self.load_data_path()
 
+    def all_cities(self):
+        all_columns = set(self.raw_data.columns.tolist())
+        all_columns.remove('datetime')
+        all_columns = list(all_columns)
+        self.cities = all_columns
+        return self.cities
+
     
     def load_data_path(self):
         return pd.read_csv(self.data_path+self.data_file)
