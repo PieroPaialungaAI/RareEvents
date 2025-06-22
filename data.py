@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import pandas as pd
 from constants import * 
+from plotter import *
 
 class Data:
     def __init__(self, data_path = DEFAULT_DATA_PATH, data_file = DEFAULT_DATA_FILE):
@@ -36,5 +37,12 @@ class Data:
         self.processed_data['year'] = self.processed_data['datetime'].dt.year
         return self.processed_data
     
+
+    def plot_city(self, city):
+        timeseries_plotter(self.raw_data, city)
+
+
+    def plot_distribution_city(self, city):
+        timeseries_dist_plotter(self.raw_data, city)
 
 

@@ -1,7 +1,8 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 from constants import * 
-from scipy.stats import genextreme
+from scipy.stats import genextreme, norm
+import pandas as pd
 
 
 def distribution_plotter(max_values_dict, image_path = DEFAULT_IMAGE_PATH):
@@ -54,3 +55,45 @@ def qq_plotter(osm, osr, dist_name, key):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+
+def timeseries_plotter(data, city):
+    y = np.array(data[city])
+    x = np.array(pd.to_datetime(data['datetime']))
+    plt.figure(figsize=(10, 4))
+    plt.plot(x, y, color = 'navy')
+    plt.title(f'Time Series for city = {city}')
+    plt.xlabel('Time')
+    plt.ylabel('Temperature (K)')
+    plt.grid(True)
+    plt.show()
+
+
+def timeseries_dist_plotter(data, city):
+    x = np.array(data[city].dropna())
+    
+    # Fit a Gaussian to the data
+    mu, std = norm.fit(x)
+    
+    # Create range for the PDF
+    xmin, xmax = min(x), max(x)
+    x_range = np.linspace(xmin, xmax, 1000)
+    pdf = norm.pdf(x_range, mu, std)
+
+    # Plot histogram with density=True (normalized)
+    plt.figure(figsize=(10, 4))
+    plt.hist(x, bins=50, color='lightgray', edgecolor='black', density=True, alpha=0.6, label='Histogram')
+
+    # Plot the fitted Gaussian
+    plt.plot(x_range, pdf, 'r-', lw=2, label=f'Gaussian Fit\nμ={mu:.2f}, σ={std:.2f}')
+
+    # Aesthetic adjustments
+    plt.title(f'Fitted Distribution for {city}')
+    plt.xlabel('Temperature (K)')
+    plt.ylabel('Density')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    
